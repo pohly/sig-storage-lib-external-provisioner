@@ -781,6 +781,7 @@ func (ctrl *ProvisionController) enqueueClaim(obj interface{}) {
 		return
 	}
 	if ctrl.claimQueue.NumRequeues(uid) == 0 {
+		glog.V(5).Infof("adding claim %s to create queue", uid)
 		ctrl.claimQueue.Add(uid)
 	}
 }
@@ -797,6 +798,7 @@ func (ctrl *ProvisionController) enqueueVolume(obj interface{}) {
 	// Re-Adding is harmless but try to add it to the queue only if it is not
 	// already there, because if it is already there we *must* be retrying it
 	if ctrl.volumeQueue.NumRequeues(key) == 0 {
+		glog.V(5).Infof("adding volume %s to delete queue", key)
 		ctrl.volumeQueue.Add(key)
 	}
 }
@@ -861,6 +863,7 @@ func (ctrl *ProvisionController) Run(ctx context.Context) {
 			return
 		}
 
+		glog.V(2).Infof("starting %d workers each for creating and deleting volumes", ctrl.threadiness)
 		for i := 0; i < ctrl.threadiness; i++ {
 			go wait.Until(func() { ctrl.runClaimWorker(ctx) }, time.Second, ctx.Done())
 			go wait.Until(func() { ctrl.runVolumeWorker(ctx) }, time.Second, ctx.Done())
